@@ -19,11 +19,10 @@ pickle_in = open("model_trained.p", "rb")
 model = pickle.load(pickle_in)
 
 
-def preProcessing(img):  # resim alan bir fonksiyon tanımladık
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # resmi gray-scale hale çevirdik.
-    img = cv2.equalizeHist(img)  # görüntülerin aydınlatmasının eşit dağılmasını sağlar
-    # Normalization aşaması. Grayscale değerleri 0-255 arasında değişir. Biz bunları 0-1 arasında olmasını sağlıyoruz. Training
-    # için böyle olması daha iyi
+def preProcessing(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.equalizeHist(img)
+    # Normalization
     img = img / 255
     return img
 
@@ -39,7 +38,6 @@ while True:
     classIndex = int(model.predict_classes(img))
     print(classIndex)
     predictions = model.predict(img)
-    #print(predictions)
     probValue = np.amax(predictions)
     print(classIndex, probValue)
     if probValue > threshold:

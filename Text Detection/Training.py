@@ -22,17 +22,13 @@ epochsValue = 10
 stepsPerEpoch = 2000
 #################################################
 
-# Resimleri tutmka için bir liste oluşturduk
 images = []
 classNo = []
 
-# 1) Öncelikle listemizin directory bilgisini alalım
 myList = os.listdir(path)
-# print(myList) listemizin içi
-print("Total Number of Classes Detected: ", len(myList))  # listemizin boyutu 2
+print("Total Number of Classes Detected: ", len(myList))
 numberOfClasses = len(myList)
 
-# bütün resimleri import edip bunları bir listeye koyalım
 print("Importing Classes.....")
 for x in range(0, numberOfClasses):
     myPictureList = os.listdir(
@@ -47,17 +43,15 @@ for x in range(0, numberOfClasses):
         classNo.append(x)
     print(x, end=" ")  # Hangi sınıfları eklediğimizi kontrol edelim 3. Foto
 print(" ")
-# print(len(images)) # 4.foto listemize eklediğimiz resimlerin sayısı
-# print(len(classNo)) # 5. Foto bütün resimleri class numaraları ile birlikte tuttuğumuz için class no listesinin sayısı
+print(len(images))
+print(len(classNo))
 
 
 # Elde ettiğimiz listeleri numpy arraye çevirelim
 images = np.array(images)
 classNo = np.array(classNo)
-
-# Shapeleri kontrol etmek daha kolay 6 .foto
 print(images.shape)
-# print(classNo.shape)
+
 
 # Split Data işlemini yapabilmek için sklearn kütüphanesini kullanacağız.
 X_train, X_test, Y_train, Y_Test = train_test_split(images, classNo, test_size=testRatio)  # %20 test %80 training
@@ -65,28 +59,17 @@ X_train, X_test, Y_train, Y_Test = train_test_split(images, classNo, test_size=t
 X_train, X_validation, Y_train, Y_validation = train_test_split(X_train, Y_train,
                                                                 test_size=validationRatio)  # %64 Train %16 Validation
 
-print(X_train.shape)  # Split edilip edilmediğini kontrol edelim foto 7
+print(X_train.shape)
 print(X_test.shape)
-print(X_validation.shape)  # Validataion ı split ettikten sonrası foto 8
+print(X_validation.shape)
 
-# Verilerin her sınıfa eşit dağıldığından emin olmalyız. X_train asıl resimleri tutarken Y_train her resmin sınıf bilgisini tutar
-# print(np.where(Y_train == 0)) # 0 sınıfını temsil eden indexler foto 9-1 ve 9-2
-
-# print(len(np.where(Y_train == 0)[0])) # ID si 0 olanların sayısı foto 10
-# bu işlemi tamamı için yapalım
-# HEr sınıfın kaç tane resmi olduğununun sayısı foto 11
-# for x in range(0, numberOfClasses):
-#    print(len(np.where(Y_train == x)[0]))
-
-# her sınıftan kaç tane olduğunu bir değişkene atayalım
-
+# her sınıftan kaç tane örnek var
 numberOfSamples = []
 for x in range(0, numberOfClasses):
-    # print(len(np.where(Y_train == x)[0]))
     numberOfSamples.append(len(np.where(Y_train == x)[0]))
-print(numberOfSamples)  # her sınıftan kaç tane örnek var onu bastırıyoruz foto 12
+print(numberOfSamples)
 
-# Resimlerin sınıflara nasıl dağıldığına dair bir grafik oluşturalım. Bunun için matplotlib i import ettik
+# Resimlerin sınıflara nasıl dağıldığına dair bir grafik oluşturalım.
 plt.figure(figsize=(10, 5))
 plt.bar(range(0, numberOfClasses), numberOfSamples)
 plt.title("Number of Images for Each Class")
@@ -99,55 +82,24 @@ print(X_train[44].shape)
 
 
 # Sıradaki işlem resimleri pre process etmek
-def preProcessing(img):  # resim alan bir fonksiyon tanımladık
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # resmi gray-scale hale çevirdik.
-    img = cv2.equalizeHist(img)  # görüntülerin aydınlatmasının eşit dağılmasını sağlar
-    # Normalization aşaması. Grayscale değerleri 0-255 arasında değişir. Biz bunları 0-1 arasında olmasını sağlıyoruz. Training
-    # için böyle olması daha iyi
+def preProcessing(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.equalizeHist(img)
+    # Normalization
     img = img / 255
     return img
 
-
-# # Herhangi bir resmimizin pre-process işleminden sonra nasıl göründüğü test edelim. Seçtiğim resmim Traing setinin 44 nolu resmi
-# img = preProcessing(X_train[44])
-# imgOriginal = X_train[44]
-# # resimler daha önce 32*32 boyutunda olduğu için görmek için resize edelim
-# img = cv2.resize(img, (300, 300))
-# imgOriginal = cv2.resize(imgOriginal, (300, 300))
-# cv2.imshow("Non-PreProcessed", imgOriginal)
-# cv2.imshow("PreProcessed", img)
-# cv2.waitKey(0) # Hemen kapanmamasını sağladık
-
-
-# Şimdi yapmamız gereken X_Train arrayi içerisinde bulunan bütün resimleri Pre-process işlemi uygulamalıyız
-
 X_train = np.array(list(map(preProcessing, X_train)))
-# img = X_train[44]
-# img = cv2.resize(img, (300, 300))  foto 15
-# cv2.imshow("PreProcessed", img)
-# cv2.waitKey(0)
-
-# Şimdi Pre-process işleminden sonra herhangi bir resmin shape'ine bakalım
-# print("After preprocess:")  # foto 16
-# print(X_train[44].shape)
-
-# Preprocess işlemini şimdide Test ve Validation setleri için uygulayalım
 X_test = np.array(list(map(preProcessing, X_test)))
 X_validation = np.array(list(map(preProcessing, X_validation)))
 
-# # sonraki adım, resimlerimize bir depth eklemek. Sinir ağlarının düzgün çalışabilmesi için bu gerekli
-# print("Before the reshape")
-# print(X_train.shape)
-# X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
-# print("After the reshape")
-# print(X_train.shape) # foto 17
 
-# Bu işlemi hepsi için yapmalıyız
+
 X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
 X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 X_validation = X_validation.reshape(X_validation.shape[0], X_validation.shape[1], X_validation.shape[2], 1)
 
-# Datasetimizi daha generic bir hale getirmeye çalışacağız. Kerası kullanacağız. Augment Images
+# Datasetimizi daha generic bir hale getirmeye çalışacağız.
 dataGenerator = ImageDataGenerator(width_shift_range=0.1,
                                    height_shift_range=0.1,
                                    zoom_range=0.2,
@@ -156,7 +108,7 @@ dataGenerator = ImageDataGenerator(width_shift_range=0.1,
 
 dataGenerator.fit(X_train)
 
-# from keras.utils.np_utils import to_categorical ekldik
+# One Hot Encoding
 Y_train = to_categorical(Y_train, numberOfClasses)
 Y_Test = to_categorical(Y_Test, numberOfClasses)
 Y_validation = to_categorical(Y_validation, numberOfClasses)
@@ -208,16 +160,9 @@ print(model.summary()) #foto 18
 
 # Son aşama run the training
 
-
-# history = model.fit_generator(dataGenerator.flow(X_train, Y_train, batch_size=batchSizeValue),
-#                                     steps_per_epoch=stepsPerEpoch,
-#                                     epochs=epochsValue,
-#                                     validation_data=(X_validation,Y_validation),
-#                                     shuffle=1)
-
 history = model.fit(dataGenerator.flow(X_train, Y_train, batch_size=batchSizeValue),
-                                    steps_per_epoch=stepsPerEpoch,
-                                    epochs=epochsValue,
+                                    steps_per_epoch=stepsPerEpoch, #2000
+                                    epochs=epochsValue, #10
                                     validation_data=(X_validation,Y_validation),
                                     shuffle=1)
 
